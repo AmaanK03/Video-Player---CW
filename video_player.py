@@ -11,9 +11,9 @@ def create_video_list_clicked():
     status_lbl.configure(text="Create Video List button was clicked!")
     CreateVideoList(tk.Toplevel(window))
 
-def update_button_clicked():
-    status_lbl.configure(text="Update Videos button was clicked!")
-    # Add your update functionality here
+# def update_button_clicked():
+#     status_lbl.configure(text="Update Videos button was clicked!")
+#     #dd your update functionality here
 
 window = tk.Tk()
 window.geometry("520x150")
@@ -30,8 +30,8 @@ check_videos_btn.grid(row=1, column=0, padx=10, pady=10)
 create_video_list_btn = tk.Button(window, text="Create Video List", command=create_video_list_clicked)
 create_video_list_btn.grid(row=1, column=1, padx=10, pady=10)
 
-update_videos_btn = tk.Button(window, text="Update Videos", command=update_button_clicked)
-update_videos_btn.grid(row=1, column=2, padx=10, pady=10)
+# update_videos_btn = tk.Button(window, text="Update Videos", command=update_button_clicked)
+# update_videos_btn.grid(row=1, column=2, padx=10, pady=10)
 
 status_lbl = tk.Label(window, text="", font=("Helvetica", 10))
 status_lbl.grid(row=2, column=0, columnspan=3, padx=10, pady=10)

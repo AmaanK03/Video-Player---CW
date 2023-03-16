@@ -1,72 +1,115 @@
-import tkinter as tk  # Imports the tkinter library for creating GUIs
-import tkinter.scrolledtext as tkst  # Import a scrolled text widget from tkinter
+import tkinter as tk
+import tkinter.scrolledtext as tkst
 
-import video_library as lib  # Imports a video library module
-import font_manager as fonts  # Imports a font manager module
+import video_library as lib
+import font_manager as fonts
 
+class VideoList(tk.Frame):
+    def __init__(self, master=None, **kwargs):
+        super().__init__(master, **kwargs)
+        self.grid(sticky="W", padx=10, pady=10)
 
-def set_text(text_area, content):  # Defines a function to set the text of a given text area
-    text_area.delete("1.0", tk.END)  # Deletes the current contents of the text area
-    text_area.insert(1.0, content)  # Insert new content into the text area
+        self.scrolled_text = tkst.ScrolledText(self, width=48, height=12, wrap="none")
+        self.scrolled_text.grid()
 
+    def update_list(self, video_list):
+        self.scrolled_text.delete("1.0", tk.END)
+        self.scrolled_text.insert(1.0, video_list)
 
-# Defines a class to create the main GUI window
-class CheckVideos():
-    def __init__(self, window):
-        window.geometry("750x350")  # Sets the size of the window to be 750x350 pixels
-        window.title("Check Videos")
+class VideoDetails(tk.Frame):
+    def __init__(self, master=None, **kwargs):
+        super().__init__(master, **kwargs)
+        self.grid(sticky="NW", padx=10, pady=10)
 
-        # Create a button to list all videos, and assign it to the top left corner of the window
-        list_videos_btn = tk.Button(window, text="List All Videos", command=self.list_videos_clicked)
-        list_videos_btn.grid(row=0, column=0, padx=10, pady=10)
+        self.text_widget = tk.Text(self, width=24, height=4, wrap="none")
+        self.text_widget.grid()
 
-        # Create a label to prompt the user to enter a video number, and assign it to the top center of the window
-        enter_lbl = tk.Label(window, text="Enter Video Number")
-        enter_lbl.grid(row=0, column=1, padx=10, pady=10)
+    def update_details(self, details):
+        self.text_widget.delete("1.0", tk.END)
+        self.text_widget.insert(1.0, details)
+class StatusBar(tk.Frame):
+    def __init__(self, master=None, **kwargs):
+        super().__init__(master, **kwargs)
+        self.grid(sticky="W", padx=10, pady=10)
 
-        # Create an input field for the user to enter a video number, and assign it to the top right corner of the window
-        self.input_txt = tk.Entry(window, width=3)
+        self.message = tk.StringVar()
+        self.message_label = tk.Label(self, textvariable=self.message, font=("Helvetica", 10))
+        self.message_label.grid()
+
+    def update_status(self, status):
+        self.message.set(status)
+
+class CheckVideos(tk.Frame):
+    def __init__(self, master=None, **kwargs):
+        super().__init__(master, **kwargs)
+        self.grid()
+
+        self.create_widgets()
+        self.list_videos_clicked()
+
+    def create_widgets(self):
+        self.list_videos_btn = tk.Button(self, text="List All Videos", command=self.list_videos_clicked)
+        self.list_videos_btn.grid(row=0, column=0, padx=10, pady=10)
+        self.enter_lbl = tk.Label(self, text="Enter Video Number")
+        self.enter_lbl.grid(row=0, column=1, padx=10, pady=10)
+
+        self.video_num_var = tk.StringVar()
+        self.video_num_var.trace_add("write", self.update_video_details)
+        self.input_txt = tk.Entry(self, width=3, textvariable=self.video_num_var)
         self.input_txt.grid(row=0, column=2, padx=10, pady=10)
 
-        # Create a button to check the details of a selected video, and assign it to the top right of the window
-        check_video_btn = tk.Button(window, text="Check Video", command=self.check_video_clicked)
-        check_video_btn.grid(row=0, column=3, padx=10, pady=10)
+        self.check_video_btn = tk.Button(self, text="Check Video", command=self.update_video_details)
+        self.check_video_btn.grid(row=0, column=3, padx=10, pady=10)
 
-        # Create a scrolling text box to display the video list, and assign it to the middle left of the window
-        self.list_txt = tkst.ScrolledText(window, width=48, height=12, wrap="none")
-        self.list_txt.grid(row=1, column=0, columnspan=3, sticky="W", padx=10, pady=10)
+        self.update_video_btn = tk.Button(self, text="Update Video", command=self.update_video)
+        self.update_video_btn.grid(row=0, column=4, padx=10, pady=10)
 
-        # Create a text box to display the details of a selected video, and assign it to the middle right of the window
-        self.video_txt = tk.Text(window, width=24, height=4, wrap="none")
-        self.video_txt.grid(row=1, column=3, sticky="NW", padx=10, pady=10)
+        self.enter_lbl2 = tk.Label(self, text="Enter New Rating")
+        self.enter_lbl2.grid(row=0, column=5, padx=10, pady=10)
 
-        # Create a label to display status messages, and assign it to the bottom left of the window
-        self.status_lbl = tk.Label(window, text="", font=("Helvetica", 10))
-        self.status_lbl.grid(row=2, column=0, columnspan=4, sticky="W", padx=10, pady=10)
+        self.input_rating_txt = tk.Entry(self, width=3)
+        self.input_rating_txt.grid(row=0, column=6, padx=10, pady=10)
 
-        self.list_videos_clicked()  # Call the list_videos_clicked method to initially display the video list
+        self.video_list = VideoList(master=self)
+        self.video_details = VideoDetails(master=self)
+        self.status_bar = StatusBar(master=self)
 
-    def check_video_clicked(self): #defines a function
-        key = self.input_txt.get()
+    def update_video_details(self, *args, **kwargs):
+        key = self.video_num_var.get()
         name = lib.get_name(key)
         if name is not None:
             director = lib.get_director(key)
             rating = lib.get_rating(key)
             play_count = lib.get_play_count(key)
-            video_details = f"{name}\n{director}\nrating: {rating}\nplays: {play_count}"
-            set_text(self.video_txt, video_details)
+            video_details = f"{name}\nDirector: {director}\nRating: {rating}\nPlay Count: {play_count}"
+            self.video_details.update_details(video_details)
         else:
-            set_text(self.video_txt, f"Video {key} not found")
-        self.status_lbl.configure(text="Check Video button was clicked!")
+            self.status_bar.update_status("Invalid video number")
 
     def list_videos_clicked(self):
         video_list = lib.list_all()
-        set_text(self.list_txt, video_list)
-        self.status_lbl.configure(text="List Videos button was clicked!")
+        self.video_list.update_list(video_list)
+
+    def update_video(self):
+        key = self.video_num_var.get()
+        new_rating = self.input_rating_txt.get()
+
+        try:
+            new_rating = int(new_rating)
+        except ValueError:
+            self.status_bar.update_status("Invalid rating value")
+            return
+
+        if lib.update_rating(key, new_rating):
+            self.status_bar.update_status("Video updated successfully")
+            self.list_videos_clicked()  # Update the video list to reflect the change in rating
+            self.update_video_details(None)
+        else:
+            self.status_bar.update_status("Invalid video number or rating")
 
 
-if __name__ == "__main__":  # only runs when this file is run as a standalone
-    window = tk.Tk()  # create a TK object
-    fonts.configure()  # configure the fonts
-    CheckVideos(window)  # open the CheckVideo GUI
-    window.mainloop()  # run the window main loop, reacting to button presses, etc
+if __name__ == "__main__":
+    root = tk.Tk()
+    root.title("Video Library")
+    app = CheckVideos(master=root)
+    app.mainloop()
